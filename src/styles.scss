@@ -1,4 +1,4 @@
-$primary-background: #3F51B5;
+$primary-background: #905a28;
 $primary-text-color: #f3f3f3;
 
 html, body {
@@ -42,7 +42,11 @@ a {
   margin: 0 auto;
 
   img {
-    max-width: $img-dimensions;
+    position: relative;
+    max-width: $img-dimensions - 8px;
+    top: 4px;
+    left: 4px;
+    border-radius:100%;
   }
   &::before {
     content: "";
@@ -52,9 +56,9 @@ a {
     width: $img-dimensions;
     height: $img-dimensions;
     left: 0;
-    background: lighten($primary-background, 15%);
+    background: darken($primary-background, 15%);
     border-radius: 100%;
-    border: 4px solid lighten($primary-background, 25%);
+    border: 4px solid darken($primary-background, 15%);
     z-index: -1;
     transition: border-color 0.15s ease-in-out, background 0.15s ease-in-out;
   }
