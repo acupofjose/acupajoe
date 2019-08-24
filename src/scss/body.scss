@@ -1,0 +1,67 @@
+* {
+  font-family: "Oxygen Mono", monospace;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background: $primary-background-color;
+}
+
+.circles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.circles li {
+  position: absolute;
+  display: block;
+  list-style: none;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  animation: animate 25s linear infinite;
+  bottom: -180px;
+  
+  @for $i from 1 through 25 {
+    &:nth-child(#{$i}){
+      $size: random(120);
+      $delay: random(18);
+      left: #{random(100)+ "%"};
+      width:  #{$size}px;
+      height: #{$size}px;
+      animation-delay: #{$delay}s;
+    }
+  }
+}
+
+@keyframes animate {
+  0%{
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+      border-radius: 0;
+  }
+  100%{
+      transform: translateY(-1000px) rotate(720deg);
+      opacity: 0;
+      border-radius: 50%;
+  }
+}
+
+footer {
+  position: fixed;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8em;
+  color: white;
+  i {
+    font-size: 0.8em;
+  }
+}
