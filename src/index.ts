@@ -7,7 +7,7 @@ $(function() {
   const terminal = new Terminal($(".terminal"));
 
   terminal.addLine("# Thanks for visiting! New Commands to be added soon.");
-  terminal.addLine("# Maybe get started by trying /help");
+  terminal.addLine("# Maybe get started by typing `help`");
   terminal.addLine();
 
   const $container = $("<div />").addClass("circles");

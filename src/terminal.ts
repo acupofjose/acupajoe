@@ -32,10 +32,10 @@ export default class Terminal {
 
   private commands: Array<TerminalCommand> = [
     {command: "help", aliases: ["?"], text: ["Available Commands:"], action: () => {}},
-    {command: "github", text: ["Opening: https://github.com/acupajoe"], action:() => window.open("https://github.com/acupajoe")},
-    {command: "stackoverflow", text: ["Opening: https://stackoverflow.com/users/3629438/acupajoe"], action: () => window.open("https://stackoverflow.com/users/3629438/acupajoe")},
-    {command: "email", text: ["Opening your email client.", "Excited to talk with you!"], action: () => open("mailto: joseph@acupajoe.io")},
-    {command: "source", action:() => window.open("https://github.com/acupajoe/acupajoe")},
+    {command: "/github", text: ["Opening: https://github.com/acupajoe"], action:() => window.open("https://github.com/acupajoe")},
+    {command: "/stackoverflow", text: ["Opening: https://stackoverflow.com/users/3629438/acupajoe"], action: () => window.open("https://stackoverflow.com/users/3629438/acupajoe")},
+    {command: "/email", text: ["Opening your email client.", "Excited to talk with you!"], action: () => open("mailto: joseph@acupajoe.io")},
+    {command: "/source", action:() => window.open("https://github.com/acupajoe/acupajoe")},
   ]
 
   constructor(
@@ -90,13 +90,7 @@ export default class Terminal {
     this.history.push(string);
     this.commandIndex = this.history.length - 1;
 
-    // Force `/` syntax
-    if (string[0] !== "/") 
-      return this.showCommandParseError(string)
-
-    const cleanedCommand = string.replace("/", "")
-    const command = this.findCommand(cleanedCommand)
-    console.log(command)
+    const command = this.findCommand(string)
     
     if (command) {
       // Some commands don't have text associated with them
@@ -146,15 +140,15 @@ export default class Terminal {
   outputHelpText = () => {
     for (const command of this.commands) {
       if (command.aliases) {
-        this.addLine(`/${command.command}: aliases [${command.aliases.join(',')}]`, false)
+        this.addLine(`${command.command}: aliases [${command.aliases.join(',')}]`, false)
       } else {
-        this.addLine(`/${command.command}`, false)
+        this.addLine(`${command.command}`, false)
       }
     }
   }
 
   showCommandParseError = (command: string) => {
-    this.addLine(`${command}: command not found. Maybe try \`/help\``, false)
+    this.addLine(`${command}: command not found. Maybe try \`help\``, false)
     this.addLine()
   }
 
