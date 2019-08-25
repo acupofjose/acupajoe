@@ -83,8 +83,7 @@ export default class Terminal {
 
   public focus = () => this.getCurrentLine().focus();
 
-  getCurrentLine = (): JQuery<HTMLElement> =>
-    this.$content.find("input").last();
+  getCurrentLine = (): JQuery<HTMLElement> => this.$content.find("input").last();
 
   parseCommand(string: string) {
     let text;
@@ -100,15 +99,20 @@ export default class Terminal {
     console.log(command)
     
     if (command) {
-      for (const line of command.text) {
-        this.addLine(line, false)
+      // Some commands don't have text associated with them
+      if (command.text) {
+        for (const line of command.text) {
+          this.addLine(line, false)
+        }
       }
+
+      // Help command is special
       if (command.command === "help") {
         this.outputHelpText()
       } else {
         command.action.call(this)
       }
-    this.addLine()
+      this.addLine()
     } else {
       this.showCommandParseError(string)
     }
@@ -117,7 +121,7 @@ export default class Terminal {
   registerKeyDownListener() {
     this.$el
       .find("input")
-      .off("keyup")
+      .off("keyup") // Remove previous listeners
       .keyup(e => {
         switch (e.keyCode) {
           // Enter

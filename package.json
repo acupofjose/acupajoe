@@ -1,7 +1,7 @@
 {
   "name": "acupajoe",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is my website.",
   "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
