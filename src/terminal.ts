@@ -1,15 +1,28 @@
 import $ from "jquery";
 import moment from "moment";
 
-// Functions for a terminal
-$(function() {
-  const $terminal = $(".terminal");
-  const $content = $terminal.find(".content");
-  const history = [];
-  let commandIndex = 0;
-  let $currentLine;
+export interface TerminalConfig {
+  showIntro: boolean;
+  showLastLogin: boolean;
+}
 
-  const introLines = [
+export interface TerminalCommand {
+  command: string
+  aliases?: string[]
+  text?: string[]
+  action: () => void
+}
+
+export default class Terminal {
+  private config: TerminalConfig;
+
+  private $el: JQuery<HTMLElement>;
+  private $content: JQuery<HTMLElement>;
+
+  private history: string[];
+  private commandIndex: number;
+
+  private introLines = [
     `  __    ___  _  _  ____   __     __   __  ____`,
     ` / _\\  / __)/ )( \\(  _ \\ / _\\  _(  ) /  \\(  __)`,
     `/    \\( (__ ) \\/ ( ) __//    \\/ \\) \\(  O )) _) `,
@@ -17,106 +30,143 @@ $(function() {
     ``
   ];
 
-  // Adds a new line to the terminal
-  function addNewLine(text?: string, isNewLine: boolean = true) {
+  private commands: Array<TerminalCommand> = [
+    {command: "help", aliases: ["?"], text: ["Available Commands:"], action: () => {}},
+    {command: "github", text: ["Opening: https://github.com/acupajoe"], action:() => window.open("https://github.com/acupajoe")},
+    {command: "stackoverflow", text: ["Opening: https://stackoverflow.com/users/3629438/acupajoe"], action: () => window.open("https://stackoverflow.com/users/3629438/acupajoe")},
+    {command: "email", text: ["Opening your email client.", "Excited to talk with you!"], action: () => open("mailto: joseph@acupajoe.io")},
+    {command: "source", action:() => window.open("https://github.com/acupajoe/acupajoe")},
+  ]
+
+  constructor(
+    $el: JQuery<HTMLElement>,
+    config: TerminalConfig = { showIntro: true, showLastLogin: true }
+  ) {
+    this.$el = $el;
+    this.$content = this.$el.find(".content");
+    this.history = [];
+    this.commandIndex = 0;
+    this.config = config;
+
+    if (this.config.showLastLogin) [
+      this.addLine(`Last Login: ${moment().format("llll")} on ttys001`, false);
+    ]
+    
+    if (this.config.showIntro) {
+      for (const line of this.introLines) {
+        this.addLine(line, false);
+      }
+    }
+
+    this.registerKeyDownListener()
+    this.focus()
+  }
+
+  public addLine(text?: string, isUserLine: boolean = true) {
     const $input = $("<input/>", { type: "text", val: text });
     const $line = $("<div/>", { class: "line" }).append($input);
 
-    if (isNewLine) $line.addClass("is-new-line");
+    if (isUserLine) $line.addClass("is-user-line");
 
-    $content.append($line);
+    this.$content.append($line);
 
-    registerKeyDownListener();
+    this.registerKeyDownListener();
 
     // Disable Previous lines
-    $content.find("input").attr("readonly", "true");
+    this.$content.find("input").attr("readonly", "true");
 
     // Enable current line and focus
-    $currentLine = $content.find("input").last();
-    $currentLine.removeAttr("readonly").focus();
+    this.getCurrentLine()
+      .removeAttr("readonly")
+      .focus();
   }
 
-  // Command Parser
-  function parseCommand(command: string) {
+  public focus = () => this.getCurrentLine().focus();
+
+  getCurrentLine = (): JQuery<HTMLElement> =>
+    this.$content.find("input").last();
+
+  parseCommand(string: string) {
     let text;
-    history.push(command);
-    commandIndex = history.length - 1;
-    switch (command) {
-      case "/help":
-        text = [
-          "Available commands:",
-          "/help",
-          "/github",
-          "/stackoverflow",
-          "/email"
-        ];
-        for (const line of text) {
-          addNewLine(line, false);
-        }
-        break;
-      case "/github":
-        addNewLine("Opening: https://github.com/acupajoe", false);
-        window.open("https://github.com/acupajoe");
-        break;
-      case "/stackoverflow":
-        addNewLine(
-          "Opening: https://stackoverflow.com/users/3629438/acupajoe",
-          false
-        );
-        window.open("https://stackoverflow.com/users/3629438/acupajoe");
-        break;
-      case "/email":
-        text = ["Opening your email client.", "Excited to talk with you!"];
-        for (const line of text) {
-          addNewLine(line, false);
-        }
-        window.open("mailto:joseph@acupajoe.io");
-        break;
-      default:
-        if (command === "") break;
-        text = `${command}: command not found. Maybe try \`/help\`?`;
-        addNewLine(text, false);
-        break;
+    this.history.push(string);
+    this.commandIndex = this.history.length - 1;
+
+    // Force `/` syntax
+    if (string[0] !== "/") 
+      return this.showCommandParseError(string)
+
+    const cleanedCommand = string.replace("/", "")
+    const command = this.findCommand(cleanedCommand)
+    console.log(command)
+    
+    if (command) {
+      for (const line of command.text) {
+        this.addLine(line, false)
+      }
+      if (command.command === "help") {
+        this.outputHelpText()
+      } else {
+        command.action.call(this)
+      }
+    this.addLine()
+    } else {
+      this.showCommandParseError(string)
     }
-    addNewLine();
   }
 
-  // Handle key events
-  function registerKeyDownListener() {
-    $terminal
+  registerKeyDownListener() {
+    this.$el
       .find("input")
       .off("keyup")
       .keyup(e => {
-        console.log(e.keyCode);
         switch (e.keyCode) {
           // Enter
           case 13:
             const value = $(e.target).val() as string;
-            parseCommand(value);
+            this.parseCommand(value);
             break;
           // Up
           case 38:
-            if (commandIndex >= 0) $currentLine.val(history[commandIndex--]);
+            if (this.commandIndex >= 0)
+              this.getCurrentLine().val(this.history[this.commandIndex--]);
             break;
           // Down
           case 40:
-            if (commandIndex < history.length)
-              $currentLine.val(history[commandIndex++]);
+            if (this.commandIndex < this.history.length)
+              this.getCurrentLine().val(this.history[this.commandIndex++]);
             break;
         }
       });
   }
 
-  addNewLine(`Last Login: ${moment().format("llll")} on ttys001`, false);
-  for (const line of introLines) {
-    addNewLine(line, false);
+  outputHelpText = () => {
+    for (const command of this.commands) {
+      if (command.aliases) {
+        this.addLine(`/${command.command}: aliases [${command.aliases.join(',')}]`, false)
+      } else {
+        this.addLine(`/${command.command}`, false)
+      }
+    }
   }
-  addNewLine("// Maybe get started by trying /help?");
-  addNewLine();
 
-  // Focus last terminal line
-  $currentLine = $terminal.find("input").last();
-  $currentLine.focus();
+  showCommandParseError = (command: string) => {
+    this.addLine(`${command}: command not found. Maybe try \`/help\``, false)
+    this.addLine()
+  }
 
-  registerKeyDownListener();
-});
+  findCommand = (search: string) : TerminalCommand => {
+    let item = this.commands.find(c => c.command === search)
+    if (item) return item
+
+    item = this.commands.find(c => {
+      if (c.aliases != null) { 
+        return !!c.aliases.find(a => a === search)
+      }
+      else  {
+      return undefined
+      }
+    })
+
+    return item
+  }
+}
