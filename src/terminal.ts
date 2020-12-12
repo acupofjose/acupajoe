@@ -55,8 +55,8 @@ $(function() {
         }
         break;
       case "/github":
-        addNewLine("Opening: https://github.com/acupajoe", false);
-        window.open("https://github.com/acupajoe");
+        addNewLine("Opening: https://github.com/acupofjose", false);
+        window.open("https://github.com/acupofjose");
         break;
       case "/stackoverflow":
         addNewLine(
@@ -70,7 +70,7 @@ $(function() {
         for (const line of text) {
           addNewLine(line, false);
         }
-        window.open("mailto:joseph@acupajoe.io");
+        window.open("mailto:joseph@acupofjose.com");
         break;
       default:
         if (command === "") break;
